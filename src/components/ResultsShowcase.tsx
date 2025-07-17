@@ -1,159 +1,57 @@
 import {
+  Check,
   Download,
   Play,
   Podcast,
+  RefreshCw,
   Share,
   ShoppingCart,
   Star,
 } from "lucide-react";
 
-import AudioPlayer from "./AudioPlayer";
+import { AutobiographyData } from "./InputWizard";
 import AutobiographyPage from "./AutobiographyPage";
 import HTMLFlipBook from "react-pageflip";
-import { generateSectionAudio } from "../ai/actions";
 import { useState } from "react";
 
-const ResultsShowcase = () => {
+interface ResultsShowcaseProps {
+  autobiography: AutobiographyData | null;
+  onGenerateAnother: () => void;
+}
+
+const ResultsShowcase = ({
+  autobiography,
+  onGenerateAnother,
+}: ResultsShowcaseProps) => {
   const [showBook, setShowBook] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | undefined>(undefined);
-  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
-  // Sample text for audio generation demo
-  const sampleText = `Welcome to your autobiography. This is the beginning of your story, a journey through the moments that shaped you into who you are today. Every memory, every challenge, every triumph - they all come together to create the unique narrative that is your life.`;
-
-  const handleGenerateAudio = async () => {
-    setIsGeneratingAudio(true);
-    try {
-      const audioDataUrl = await generateSectionAudio(sampleText);
-      setAudioUrl(audioDataUrl);
-    } catch (error) {
-      console.error("Failed to generate audio:", error);
-      alert("Failed to generate audio. Please check your ElevenLabs API key.");
-    } finally {
-      setIsGeneratingAudio(false);
-    }
-  };
-
-  const AudioPlayerDemo = () => (
-    <AudioPlayer
-      audioUrl={audioUrl}
-      title="Chapter 1: The Beginning"
-      isLoading={isGeneratingAudio}
-      onGenerateAudio={handleGenerateAudio}
-    />
-  );
+  if (!autobiography) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading autobiography...</p>
+      </div>
+    );
+  }
 
   const autobiographyPages = [
     // Cover
-    `MY STORY
-    A Life Worth Living
-    
-    
-    
-    
-    
-    An Autobiography`,
-
+    `MY STORY\n\nA Life Worth Living\n\n\n\n\n\nAn Autobiography`,
     // Table of Contents
-    `TABLE OF CONTENTS
-    
-    Chapter 1: The Beginning ...................... 3
-    Chapter 2: Growing Up ......................... 12
-    Chapter 3: Finding My Path ................... 23
-    Chapter 4: Love and Loss ..................... 34
-    Chapter 5: Career Milestones ................. 45
-    Chapter 6: Life Lessons ...................... 56
-    Chapter 7: Family and Friends ................ 67
-    Chapter 8: Challenges Overcome ............... 78
-    Chapter 9: Dreams Realized ................... 89
-    Chapter 10: Looking Forward .................. 98
-    
-    Epilogue ..................................... 105`,
-
-    // Chapter 1
-    `CHAPTER 1
-    The Beginning
-    
-    Every story has a beginning, and mine started on a crisp autumn morning in a small town where everyone knew everyone. I was born into a world that was both simple and complex, where the smell of fresh bread from the local bakery mixed with the dreams of a generation ready to change the world.
-    
-    My earliest memories are painted in the golden hues of childhood wonder. The creaking floorboards of our family home, the way sunlight streamed through the kitchen window during breakfast, and the sound of my mother's laughter echoing through the halls—these are the moments that shaped my foundation.
-    
-    Growing up wasn't just about the big milestones; it was about the small, seemingly insignificant moments that, when woven together, created the tapestry of who I would become.`,
-
-    // Chapter 2
-    `CHAPTER 2
-    Growing Up
-    
-    School days were a mix of excitement and anxiety. I remember my first day of kindergarten, clutching my mother's hand as we walked through those imposing double doors. The classroom smelled of crayons and possibility.
-    
-    Mrs. Henderson, my first teacher, had a way of making every child feel special. She taught us that learning wasn't just about memorizing facts—it was about curiosity, about asking questions, and about never being afraid to make mistakes.
-    
-    Those formative years taught me resilience. When I struggled with math, I learned that perseverance could overcome any challenge. When I excelled in creative writing, I discovered that words had power—the power to inspire, to comfort, and to change minds.
-    
-    The playground was my first taste of social dynamics, where friendships were forged and broken over games of tag and shared lunches.`,
-
-    // Chapter 3
-    `CHAPTER 3
-    Finding My Path
-    
-    High school brought new challenges and opportunities. It was during these years that I began to understand who I was and who I wanted to become. The world seemed full of infinite possibilities, and I was determined to explore them all.
-    
-    I joined the debate team, where I learned the art of persuasion and the importance of research. I participated in the school musical, discovering a love for performance that would stay with me throughout my life. I volunteered at the local hospital, where I witnessed both the fragility and strength of the human spirit.
-    
-    These experiences weren't just extracurricular activities—they were the building blocks of my character. Each challenge I faced, each success I celebrated, and each failure I learned from contributed to the person I was becoming.
-    
-    College applications loomed large, but I was ready for the next chapter.`,
-
-    // Chapter 4
-    `CHAPTER 4
-    Love and Loss
-    
-    Life has a way of teaching us its most profound lessons through the experiences of love and loss. In my early twenties, I experienced both in ways that would forever change my perspective on what truly matters.
-    
-    I met Sarah during my sophomore year of college. She had a laugh that could light up any room and a way of seeing the world that challenged my assumptions. Our love story wasn't a fairy tale—it was better because it was real, complete with disagreements, growth, and the kind of deep connection that only comes from truly knowing another person.
-    
-    But life also brought loss. The passing of my grandfather taught me about grief, about the importance of cherishing every moment, and about the legacy we leave behind. His final words to me were simple: "Live fully, love deeply, and never stop learning."
-    
-    These experiences of love and loss taught me empathy, resilience, and the importance of human connection.`,
-
-    // Chapter 5
-    `CHAPTER 5
-    Career Milestones
-    
-    My professional journey began with uncertainty but evolved into a path of purpose and fulfillment. My first job was far from glamorous—long hours, modest pay, and tasks that seemed disconnected from my bigger dreams.
-    
-    But I learned that every job, no matter how small, teaches valuable lessons. I learned about teamwork, about the satisfaction of hard work, and about the importance of treating everyone with respect and dignity.
-    
-    The breakthrough came when I decided to take a risk and pursue my passion project. It wasn't easy—there were countless late nights, financial stress, and moments of doubt. But there were also moments of triumph, recognition, and the incredible feeling of knowing that I was making a difference.
-    
-    Success wasn't just about the accolades or the financial rewards. It was about the people I met along the way, the problems I helped solve, and the impact I was able to make on the world around me.`,
-
-    // Chapter 6
-    `CHAPTER 6
-    Life Lessons
-    
-    If I could distill everything I've learned into a few key principles, they would be these: authenticity matters more than perfection, relationships are more valuable than achievements, and growth never stops.
-    
-    I learned that failure isn't the opposite of success—it's a stepping stone to success. Every setback taught me something new about myself, about resilience, and about the importance of getting back up when life knocks you down.
-    
-    I discovered that happiness isn't a destination—it's a way of traveling. It's found in the small moments: a conversation with a friend, a beautiful sunset, a job well done, or the simple pleasure of a good book.
-    
-    Most importantly, I learned that life is not about having all the answers. It's about being comfortable with questions, embracing uncertainty, and finding meaning in the journey itself.`,
-
-    // Epilogue
-    `EPILOGUE
-    
-    As I write these final words, I'm struck by how much has changed since that first chapter began. The small town where I grew up seems both distant and ever-present, a reminder of where I came from and how far I've traveled.
-    
-    This autobiography isn't just my story—it's a testament to the power of perseverance, the importance of relationships, and the endless capacity for growth that exists within all of us.
-    
-    To anyone reading this: your story matters. Your experiences, your challenges, your triumphs—they all contribute to the rich tapestry of human experience. Don't wait for the perfect moment to start living fully. The perfect moment is now.
-    
-    The best chapters of my story are still being written, and I hope the same is true for you.
-    
-    With gratitude for the journey,
-    [Your Name]`,
+    `TABLE OF CONTENTS\n\n` +
+      autobiography.sections
+        .map(
+          (section, index) =>
+            `${section.title} ...................... ${index * 10 + 3}`
+        )
+        .join("\n"),
+    // Chapters
+    ...autobiography.sections.map(
+      (section) =>
+        `${section.title}\n${section.timeframe}\n\n${section.content}`
+    ),
   ];
+
+  const totalPages = autobiographyPages.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-blue-50 py-12">
@@ -200,7 +98,7 @@ const ResultsShowcase = () => {
                     </div>
                   </button>
                   <div className="bg-yellow-400 text-black px-2 py-1 rounded text-sm font-semibold">
-                    287 Pages
+                    {totalPages} Pages
                   </div>
                 </div>
               </div>
@@ -238,10 +136,17 @@ const ResultsShowcase = () => {
                 Complete Amazon listing with description, keywords, and
                 categories.
               </p>
-              <button className="w-full border-2 border-yellow-400 text-yellow-600 py-2 px-4 rounded-md hover:bg-yellow-50 transition-colors flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                View Listing
-              </button>
+              <a
+                href="https://sellercentral.amazon.com/ap/signin?openid.return_to=https%3A%2F%2Fsellercentral.amazon.com%2Fmario%2Fua%2Forbis-welcome%2Fregional%2Fnode%2Fwelcome%2Frender%3Fpassthrough%252Faccount%3Dfba_soa%26passthrough%252FmarketplaceID%3DATVPDKIKX0DER%26passthrough%252FsuperSource%3DOAR%26ref_%3Dsdus_blog_apl_rp_h%26passthrough%252FinitialSessionID%3D132-5210665-6996562%26passthrough%252Fld%3DNSGoogle%26passthrough%252FpageName%3DUS%253ASD%253Ablog%252Famazon-product-listings%26productTier%3DFBA%253ASILVER%26productType%3DFulfillmentByAmazon%253ASellOnAmazon%26marketplaceId%3DATVPDKIKX0DER%26language%3Den_US%26ingressMarketplace%3DATVPDKIKX0DER%26marketplace%3DATVPDKIKX0DER%26primaryMarketplace%3DATVPDKIKX0DER&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=amzn_sw_signup_us&openid.mode=checkid_setup&intercept=false&language=en_US&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&ssoResponse=eyJ6aXAiOiJERUYiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiQTI1NktXIn0.q0PID-I-Ce2MdtWjvN2X6H7DZ4LrqJsijsHgJMYJiof3glz9qsw51g.yHO_2CS2jrCTi-eQ.M46cngkTgni-8mGO1fOTq6eADTeO7a-LMqoudtRUQni9IEYNIE8KHIiCrfYOPMFWPDrN3Fmo9DQOWTTm3eF45pI0Pp1FCcfjUzbfcUWW7U5K3FZENUHHtT3VqpjZvg8_svRNDPAXswENlxDwqo2N-FfrC5gXm3NzCrMrrTUyAX2rsj6VTR3TSmyoUnXW1t6hwAD2nP-KyVQ.y5ggwVpG-5qRFLoxKG--SQ"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full"
+              >
+                <button className="w-full border-2 border-yellow-400 text-yellow-600 py-2 px-4 rounded-md hover:bg-yellow-50 transition-colors flex items-center justify-center">
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  View Listing
+                </button>
+              </a>
             </div>
           </div>
 
@@ -279,16 +184,24 @@ const ResultsShowcase = () => {
         <div className="text-center">
           <div className="border-4 border-black shadow-2xl inline-block rounded-lg bg-white">
             <div className="p-8">
-              <h3 className="text-3xl font-black mb-4">READY TO PUBLISH?</h3>
+              <h3 className="text-3xl font-black mb-4">
+                IS THE AUTOBIOGRAPHY CORRECT?
+              </h3>
               <p className="text-lg text-gray-600 mb-6">
-                Your autobiography is complete and ready for the world to read.
+                Review the generated content. If you&apos;d like to try again,
+                you can generate a new version.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="bg-black hover:bg-gray-800 text-white px-8 py-3 rounded-md text-lg font-semibold transition-colors">
-                  Publish on Amazon
+                <button
+                  onClick={onGenerateAnother}
+                  className="bg-gray-200 hover:bg-gray-300 text-black px-8 py-3 rounded-md text-lg font-semibold transition-colors flex items-center justify-center"
+                >
+                  <RefreshCw className="w-5 h-5 mr-2" />
+                  Generate Another
                 </button>
-                <button className="border-2 border-black text-black px-8 py-3 rounded-md text-lg font-semibold hover:bg-gray-50 transition-colors">
-                  Share with Friends
+                <button className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-md text-lg font-semibold transition-colors flex items-center justify-center">
+                  <Check className="w-5 h-5 mr-2" />
+                  Looks Perfect!
                 </button>
               </div>
             </div>
@@ -316,36 +229,40 @@ const ResultsShowcase = () => {
               </div>
               <div className="p-4 flex justify-center">
                 <HTMLFlipBook
-                  width={500}
-                  height={650}
+                  width={600}
+                  height={800}
                   size="stretch"
-                  minWidth={400}
-                  maxWidth={600}
+                  minWidth={600}
+                  maxWidth={800}
                   minHeight={500}
                   maxHeight={700}
                   maxShadowOpacity={0.5}
                   showCover={true}
                   mobileScrollSupport={false}
-                  onFlip={(pageObject) => {
-                    console.log("Page flipped:", pageObject);
+                  onFlip={(e) => {
+                    console.log("Current page: " + e.data);
                   }}
                   className="autobiography-flipbook"
+                  style={{}}
+                  startPage={0}
+                  drawShadow={true}
+                  flippingTime={1000}
+                  usePortrait={true}
+                  startZIndex={0}
+                  autoSize={true}
+                  clickEventForward={true}
+                  useMouseEvents={true}
+                  swipeDistance={30}
+                  showPageCorners={true}
+                  disableFlipByClick={false}
                 >
-                  <AutobiographyPage
-                    content=""
-                    pageNumber={1}
-                    isFirstPage={true}
-                  />
-                  <AutobiographyPage
-                    content=""
-                    pageNumber={2}
-                    isTableOfContents={true}
-                  />
-                  {autobiographyPages.slice(2).map((content, index) => (
+                  {autobiographyPages.map((content, index) => (
                     <AutobiographyPage
-                      key={index + 3}
+                      key={index}
                       content={content}
-                      pageNumber={index + 3}
+                      pageNumber={index + 1}
+                      isFirstPage={index === 0}
+                      isTableOfContents={index === 1}
                     />
                   ))}
                 </HTMLFlipBook>
