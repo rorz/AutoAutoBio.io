@@ -9,7 +9,7 @@ import { useState } from "react";
 
 interface InputWizardProps {
   onBack: () => void;
-  onComplete: (data: any) => void;
+  onComplete: (data: UserInputData) => void;
 }
 
 const InputWizard = ({ onBack, onComplete }: InputWizardProps) => {

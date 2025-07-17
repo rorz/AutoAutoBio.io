@@ -1,5 +1,5 @@
 import { ArrowRight, BookOpen, Mic } from "lucide-react";
-import ThreeBackground from "./ThreeBackground";
+import InteractiveBookCloud from "./InteractiveBookCloud";
 
 interface HeroSectionProps {
   onGetStarted: () => void;
@@ -8,7 +8,7 @@ interface HeroSectionProps {
 const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden">
-      <ThreeBackground />
+      <InteractiveBookCloud />
       
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30 pointer-events-none"></div>
       
