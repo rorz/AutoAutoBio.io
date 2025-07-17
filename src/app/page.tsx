@@ -3,19 +3,20 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
-import InputWizard from "@/components/InputWizard";
+import InputWizard, { UserInputData } from "@/components/InputWizard";
 import ProcessingPipeline from "@/components/ProcessingPipeline";
 import ResultsShowcase from "@/components/ResultsShowcase";
+import ComingSoonSection from "@/components/ComingSoonSection";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<'hero' | 'input' | 'processing' | 'results'>('hero');
-  const [userInput, setUserInput] = useState(null);
+  const [userInput, setUserInput] = useState<UserInputData | null>(null);
 
   const handleGetStarted = () => {
     setCurrentView('input');
   };
 
-  const handleInputComplete = (data: any) => {
+  const handleInputComplete = (data: UserInputData) => {
     setUserInput(data);
     setCurrentView('processing');
   };
@@ -50,9 +51,10 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-black text-white">
       <Header />
       <HeroSection onGetStarted={handleGetStarted} />
+      <ComingSoonSection />
     </div>
   );
 }

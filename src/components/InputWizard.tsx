@@ -1,14 +1,26 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Upload, Mic, FileText, Sparkles } from "lucide-react";
 
+export interface UserInputData {
+  basicInfo: {
+    name: string;
+    age: string;
+    occupation: string;
+    location: string;
+  };
+  lifeStory: string;
+  keyMoments: string;
+  audioFile: File | null;
+}
+
 interface InputWizardProps {
   onBack: () => void;
-  onComplete: (data: any) => void;
+  onComplete: (data: UserInputData) => void;
 }
 
 const InputWizard = ({ onBack, onComplete }: InputWizardProps) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UserInputData>({
     basicInfo: {
       name: "",
       age: "",
@@ -17,7 +29,7 @@ const InputWizard = ({ onBack, onComplete }: InputWizardProps) => {
     },
     lifeStory: "",
     keyMoments: "",
-    audioFile: null as File | null
+    audioFile: null
   });
 
   const steps = [
