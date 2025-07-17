@@ -7,9 +7,8 @@ import {
   personQuery,
   synthesisQuery,
 } from "./prompts";
-import { generateObject, streamText } from "ai";
+import { generateObject, generateText } from "ai";
 
-import { createStreamableValue } from "ai/rsc";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
@@ -25,47 +24,17 @@ export async function getLifeEventsTimeline(name: string) {
     // Validate input
     const validatedName = nameSchema.parse(name);
 
-    // Create a streamable value for real-time updates
-    const stream = createStreamableValue("");
+    const result = await generateText({
+      model: openai.responses("gpt-4o"),
+      system: SYSTEM_BIO,
+      prompt: personQuery(validatedName),
+      tools: {
+        web_search_preview: openai.tools.webSearchPreview(),
+      },
+      maxTokens: 1000,
+    });
 
-    // Start the AI generation process
-    (async () => {
-      try {
-        const result = await streamText({
-          model: openai("gpt-4o"),
-          system: SYSTEM_BIO,
-          prompt: personQuery(validatedName),
-          tools: {
-            web_search: {
-              description: "Search the web for information about the person",
-              parameters: z.object({
-                query: z
-                  .string()
-                  .describe("The search query to find information"),
-              }),
-            },
-          },
-          maxTokens: 1000,
-        });
-
-        // Stream the text content as it's generated
-        for await (const textPart of result.textStream) {
-          stream.update(textPart);
-        }
-
-        // Mark the stream as done
-        stream.done();
-      } catch (error) {
-        console.error("Error in getLifeEventsTimeline:", error);
-        stream.error(
-          error instanceof Error ? error.message : "An error occurred"
-        );
-      }
-    })();
-
-    return {
-      output: stream.value,
-    };
+    return result.text;
   } catch (error) {
     // Handle validation errors
     if (error instanceof z.ZodError) {
@@ -84,47 +53,17 @@ export async function getWritingStyleAnalysis(name: string) {
     // Validate input
     const validatedName = nameSchema.parse(name);
 
-    // Create a streamable value for real-time updates
-    const stream = createStreamableValue("");
+    const result = await generateText({
+      model: openai.responses("gpt-4o"),
+      system: SYSTEM_WRITING,
+      prompt: personQuery(validatedName),
+      tools: {
+        web_search_preview: openai.tools.webSearchPreview(),
+      },
+      maxTokens: 1200,
+    });
 
-    // Start the AI generation process
-    (async () => {
-      try {
-        const result = await streamText({
-          model: openai("gpt-4o"),
-          system: SYSTEM_WRITING,
-          prompt: personQuery(validatedName),
-          tools: {
-            web_search: {
-              description: "Search the web for written content by the person",
-              parameters: z.object({
-                query: z
-                  .string()
-                  .describe("The search query to find writing samples"),
-              }),
-            },
-          },
-          maxTokens: 1200,
-        });
-
-        // Stream the text content as it's generated
-        for await (const textPart of result.textStream) {
-          stream.update(textPart);
-        }
-
-        // Mark the stream as done
-        stream.done();
-      } catch (error) {
-        console.error("Error in getWritingStyleAnalysis:", error);
-        stream.error(
-          error instanceof Error ? error.message : "An error occurred"
-        );
-      }
-    })();
-
-    return {
-      output: stream.value,
-    };
+    return result.text;
   } catch (error) {
     // Handle validation errors
     if (error instanceof z.ZodError) {
@@ -182,20 +121,40 @@ export async function generateAutobiographySections(
       throw new Error("Writing style analysis is required");
     }
 
-    // Generate structured autobiography sections
-    const result = await generateObject({
-      model: openai("gpt-4o"),
+    // Generate structured autobiography sections using generateText
+    const result = await generateText({
+      model: openai.responses("gpt-4o"),
       system: SYSTEM_AUTOBIOGRAPHY,
       prompt: synthesisQuery(
         validatedName,
         biographicalData,
         writingStyleAnalysis
       ),
-      schema: autobiographySchema,
       maxTokens: 2000,
     });
 
-    return result.object;
+    // Parse the JSON response manually
+    try {
+      const parsedResult = JSON.parse(result.text);
+
+      // Validate the structure matches our expected schema
+      if (!parsedResult.sections || !Array.isArray(parsedResult.sections)) {
+        throw new Error("Invalid response structure: missing sections array");
+      }
+
+      // Validate each section has required fields
+      for (const section of parsedResult.sections) {
+        if (!section.title || !section.content || !section.timeframe) {
+          throw new Error("Invalid section structure: missing required fields");
+        }
+      }
+
+      return parsedResult;
+    } catch (parseError) {
+      console.error("Failed to parse JSON response:", parseError);
+      console.error("Raw response:", result.text);
+      throw new Error("Failed to parse autobiography response as JSON");
+    }
   } catch (error) {
     // Handle validation errors
     if (error instanceof z.ZodError) {

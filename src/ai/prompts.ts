@@ -45,6 +45,19 @@ Create 3-5 distinct autobiography sections that:
 Focus on major life transitions, formative experiences, career milestones, or significant relationships.
 Write in first person as if the person is telling their own story.
 Maintain their authentic voice, vocabulary, and narrative patterns throughout.
+ 
+IMPORTANT: Return your response as valid JSON in exactly this format:
+{
+  "sections": [
+    {
+      "title": "Chapter title for this section",
+      "content": "The autobiography content written in first person (200-300 words)",
+      "timeframe": "The life period this covers (e.g., 'Early Childhood', 'University Years')"
+    }
+  ]
+}
+
+Return ONLY the JSON, no additional text before or after.
 `;
 
 // User prompt factory function
