@@ -101,6 +101,25 @@ const autobiographySchema = z.object({
 });
 
 /**
+ * Helper function to extract JSON from markdown code blocks
+ */
+function extractJsonFromMarkdown(text: string): string {
+  console.log("🔍 Extracting JSON from markdown...");
+  console.log("📝 Raw text length:", text.length);
+  console.log("📝 First 200 chars:", text.substring(0, 200));
+
+  // Remove markdown code blocks if present
+  const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (jsonMatch) {
+    console.log("✅ Found JSON in markdown code blocks");
+    return jsonMatch[1].trim();
+  }
+
+  console.log("ℹ️ No markdown code blocks found, returning original text");
+  return text.trim();
+}
+
+/**
  * Server Action: Generate autobiography sections by synthesizing biographical data and writing style
  * Takes the outputs from the previous two actions and creates structured autobiography content
  */
@@ -109,19 +128,33 @@ export async function generateAutobiographySections(
   biographicalData: string,
   writingStyleAnalysis: string
 ) {
+  console.log("🚀 Starting generateAutobiographySections");
+  console.log("👤 Name:", name);
+  console.log("📊 Bio data length:", biographicalData.length);
+  console.log("✍️ Writing analysis length:", writingStyleAnalysis.length);
+
   try {
     // Validate inputs
+    console.log("🔍 Validating inputs...");
     const validatedName = nameSchema.parse(name);
+    console.log("✅ Name validated:", validatedName);
 
     if (!biographicalData.trim()) {
+      console.log("❌ Biographical data is empty");
       throw new Error("Biographical data is required");
     }
 
     if (!writingStyleAnalysis.trim()) {
+      console.log("❌ Writing style analysis is empty");
       throw new Error("Writing style analysis is required");
     }
 
+    console.log("✅ All inputs validated successfully");
+
     // Generate structured autobiography sections using generateText
+    console.log("🤖 Calling OpenAI generateText...");
+    const startTime = Date.now();
+
     const result = await generateText({
       model: openai.responses("gpt-4o"),
       system: SYSTEM_AUTOBIOGRAPHY,
@@ -133,34 +166,60 @@ export async function generateAutobiographySections(
       maxTokens: 2000,
     });
 
-    // Parse the JSON response manually
+    const endTime = Date.now();
+    console.log(`✅ OpenAI call completed in ${endTime - startTime}ms`);
+    console.log("📝 Raw response length:", result.text.length);
+    console.log("📝 Raw response preview:", result.text.substring(0, 300));
+
+    // Extract JSON from potential markdown wrapper
+    console.log("🔧 Processing response...");
+    const cleanedJson = extractJsonFromMarkdown(result.text);
+    console.log("🧹 Cleaned JSON length:", cleanedJson.length);
+    console.log("🧹 Cleaned JSON preview:", cleanedJson.substring(0, 300));
+
+    // Parse and validate with Zod
+    console.log("📋 Parsing JSON with Zod...");
     try {
-      const parsedResult = JSON.parse(result.text);
+      const jsonData = JSON.parse(cleanedJson);
+      console.log("✅ JSON parsed successfully");
+      console.log("📊 Parsed object keys:", Object.keys(jsonData));
 
-      // Validate the structure matches our expected schema
-      if (!parsedResult.sections || !Array.isArray(parsedResult.sections)) {
-        throw new Error("Invalid response structure: missing sections array");
+      if (jsonData.sections) {
+        console.log("📚 Number of sections found:", jsonData.sections.length);
       }
 
-      // Validate each section has required fields
-      for (const section of parsedResult.sections) {
-        if (!section.title || !section.content || !section.timeframe) {
-          throw new Error("Invalid section structure: missing required fields");
-        }
-      }
+      console.log("🔍 Validating with Zod schema...");
+      const validatedResult = autobiographySchema.parse(jsonData);
+      console.log("✅ Zod validation successful");
+      console.log("📚 Final sections count:", validatedResult.sections.length);
 
-      return parsedResult;
+      // Log each section for debugging
+      validatedResult.sections.forEach((section, index) => {
+        console.log(`📖 Section ${index + 1}:`);
+        console.log(`  📝 Title: ${section.title}`);
+        console.log(`  📅 Timeframe: ${section.timeframe}`);
+        console.log(`  📄 Content length: ${section.content.length} chars`);
+      });
+
+      return validatedResult;
     } catch (parseError) {
-      console.error("Failed to parse JSON response:", parseError);
-      console.error("Raw response:", result.text);
-      throw new Error("Failed to parse autobiography response as JSON");
+      console.error("❌ JSON parsing failed:", parseError);
+      console.error("📝 Cleaned JSON that failed to parse:", cleanedJson);
+      throw new Error(
+        `Failed to parse JSON: ${
+          parseError instanceof Error ? parseError.message : "Unknown error"
+        }`
+      );
     }
   } catch (error) {
+    console.error("💥 Error in generateAutobiographySections:", error);
+
     // Handle validation errors
     if (error instanceof z.ZodError) {
+      console.error("🔍 Zod validation errors:", error.issues);
       throw new Error(`Invalid input: ${error.issues[0].message}`);
     }
-    console.error("Error in generateAutobiographySections:", error);
+
     throw error;
   }
 }
