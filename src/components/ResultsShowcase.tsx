@@ -214,10 +214,17 @@ const ResultsShowcase = () => {
               <p className="text-sm text-gray-600 mb-4">
                 Complete Amazon listing with description, keywords, and categories.
               </p>
-              <button className="w-full border-2 border-yellow-400 text-yellow-600 py-2 px-4 rounded-md hover:bg-yellow-50 transition-colors flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                View Listing
-              </button>
+              <a
+                href="https://sellercentral.amazon.com/ap/signin?openid.return_to=https%3A%2F%2Fsellercentral.amazon.com%2Fmario%2Fua%2Forbis-welcome%2Fregional%2Fnode%2Fwelcome%2Frender%3Fpassthrough%252Faccount%3Dfba_soa%26passthrough%252FmarketplaceID%3DATVPDKIKX0DER%26passthrough%252FsuperSource%3DOAR%26ref_%3Dsdus_blog_apl_rp_h%26passthrough%252FinitialSessionID%3D132-5210665-6996562%26passthrough%252Fld%3DNSGoogle%26passthrough%252FpageName%3DUS%253ASD%253Ablog%252Famazon-product-listings%26productTier%3DFBA%253ASILVER%26productType%3DFulfillmentByAmazon%253ASellOnAmazon%26marketplaceId%3DATVPDKIKX0DER%26language%3Den_US%26ingressMarketplace%3DATVPDKIKX0DER%26marketplace%3DATVPDKIKX0DER%26primaryMarketplace%3DATVPDKIKX0DER&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=amzn_sw_signup_us&openid.mode=checkid_setup&intercept=false&language=en_US&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&ssoResponse=eyJ6aXAiOiJERUYiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiQTI1NktXIn0.q0PID-I-Ce2MdtWjvN2X6H7DZ4LrqJsijsHgJMYJiof3glz9qsw51g.yHO_2CS2jrCTi-eQ.M46cngkTgni-8mGO1fOTq6eADTeO7a-LMqoudtRUQni9IEYNIE8KHIiCrfYOPMFWPDrN3Fmo9DQOWTTm3eF45pI0Pp1FCcfjUzbfcUWW7U5K3FZENUHHtT3VqpjZvg8_svRNDPAXswENlxDwqo2N-FfrC5gXm3NzCrMrrTUyAX2rsj6VTR3TSmyoUnXW1t6hwAD2nP-KyVQ.y5ggwVpG-5qRFLoxKG--SQ"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full"
+              >
+                <button className="w-full border-2 border-yellow-400 text-yellow-600 py-2 px-4 rounded-md hover:bg-yellow-50 transition-colors flex items-center justify-center">
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  View Listing
+                </button>
+              </a>
             </div>
           </div>
 
@@ -288,18 +295,18 @@ const ResultsShowcase = () => {
               </div>
               <div className="p-4 flex justify-center">
                 <HTMLFlipBook
-                  width={500}
-                  height={650}
+                  width={600}
+                  height={800}
                   size="stretch"
-                  minWidth={400}
-                  maxWidth={600}
+                  minWidth={600}
+                  maxWidth={800}
                   minHeight={500}
                   maxHeight={700}
                   maxShadowOpacity={0.5}
                   showCover={true}
                   mobileScrollSupport={false}
-                  onFlip={(pageObject) => {
-                    console.log('Page flipped:', pageObject);
+                  onFlip={(e) => {
+                    console.log('Current page: ' + e.data);
                   }}
                   className="autobiography-flipbook"
                 >
