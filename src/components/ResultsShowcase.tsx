@@ -9,9 +9,11 @@ import {
   Star,
 } from "lucide-react";
 
+import AudioPlayer from "./AudioPlayer";
 import { AutobiographyData } from "./InputWizard";
 import AutobiographyPage from "./AutobiographyPage";
 import HTMLFlipBook from "react-pageflip";
+import { generateSectionAudio } from "../ai/actions";
 import { useState } from "react";
 
 interface ResultsShowcaseProps {
@@ -24,6 +26,8 @@ const ResultsShowcase = ({
   onGenerateAnother,
 }: ResultsShowcaseProps) => {
   const [showBook, setShowBook] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | undefined>(undefined);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
   if (!autobiography) {
     return (
@@ -32,6 +36,25 @@ const ResultsShowcase = ({
       </div>
     );
   }
+
+  const handleGenerateAudio = async () => {
+    if (!autobiography.sections[0]) return;
+
+    setIsGeneratingAudio(true);
+    try {
+      const audioDataUrl = await generateSectionAudio(
+        autobiography.sections[0].content
+      );
+      setAudioUrl(audioDataUrl);
+    } catch (error) {
+      console.error("Failed to generate audio:", error);
+      alert(
+        "Failed to generate audio. Please check your ElevenLabs API key in your environment variables."
+      );
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
 
   const autobiographyPages = [
     // Cover
@@ -123,7 +146,12 @@ const ResultsShowcase = ({
             </div>
           </div>
 
-          <AudioPlayerDemo />
+          <AudioPlayer
+            title={autobiography.sections[0]?.title || "My Story"}
+            audioUrl={audioUrl}
+            isLoading={isGeneratingAudio}
+            onGenerateAudio={handleGenerateAudio}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
