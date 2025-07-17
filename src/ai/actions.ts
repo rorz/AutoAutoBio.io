@@ -7,6 +7,7 @@ import {
   personQuery,
   synthesisQuery,
 } from "./prompts";
+import { TTSRequest, elevenLabsService } from "./elevenlabs";
 import { generateObject, generateText } from "ai";
 
 import { openai } from "@ai-sdk/openai";
@@ -221,5 +222,151 @@ export async function generateAutobiographySections(
     }
 
     throw error;
+  }
+}
+
+/**
+ * Server Action: Generate audio for a single autobiography section using ElevenLabs
+ */
+export async function generateSectionAudio(
+  sectionText: string,
+  voiceId?: string,
+  voiceGender: "male" | "female" = "female"
+): Promise<string> {
+  try {
+    console.log("🎤 Starting audio generation for section...");
+    console.log("📝 Text length:", sectionText.length);
+
+    if (!sectionText.trim()) {
+      throw new Error("Section text is required for audio generation");
+    }
+
+    // Get recommended voice if none provided
+    const selectedVoiceId =
+      voiceId || (await elevenLabsService.getRecommendedVoice(voiceGender));
+    console.log("🎵 Using voice ID:", selectedVoiceId);
+
+    // Generate audio with optimized settings for audiobook narration
+    const audioDataUrl = await elevenLabsService.generateSpeechDataUrl({
+      text: sectionText,
+      voice_id: selectedVoiceId,
+      model_id: "eleven_turbo_v2_5", // Fast and high quality
+      voice_settings: {
+        stability: 0.75, // Higher stability for consistent narration
+        similarity_boost: 0.85, // Higher similarity for voice consistency
+        style: 0.2, // Slight expressiveness for engagement
+        use_speaker_boost: true, // Enhanced clarity
+      },
+    });
+
+    console.log("✅ Audio generation completed successfully");
+    return audioDataUrl;
+  } catch (error) {
+    console.error("❌ Error generating section audio:", error);
+    throw new Error(
+      `Audio generation failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
+/**
+ * Server Action: Generate audio for all autobiography sections
+ */
+export async function generateAutobiographyAudio(
+  sections: Array<{ title: string; content: string; timeframe: string }>,
+  voiceGender: "male" | "female" = "female"
+): Promise<Array<{ title: string; audioUrl: string; timeframe: string }>> {
+  try {
+    console.log("🎧 Starting full audiobook generation...");
+    console.log("📚 Generating audio for", sections.length, "sections");
+
+    // Get recommended voice for consistency across all sections
+    const voiceId = await elevenLabsService.getRecommendedVoice(voiceGender);
+    console.log("🎵 Using consistent voice ID:", voiceId);
+
+    // Generate audio for each section
+    const audioSections = await Promise.all(
+      sections.map(async (section, index) => {
+        console.log(
+          `🎤 Processing section ${index + 1}/${sections.length}: ${
+            section.title
+          }`
+        );
+
+        try {
+          const audioUrl = await generateSectionAudio(
+            section.content,
+            voiceId,
+            voiceGender
+          );
+          console.log(`✅ Completed section ${index + 1}: ${section.title}`);
+
+          return {
+            title: section.title,
+            audioUrl,
+            timeframe: section.timeframe,
+          };
+        } catch (error) {
+          console.error(
+            `❌ Failed to generate audio for section: ${section.title}`,
+            error
+          );
+          throw error;
+        }
+      })
+    );
+
+    console.log("🎉 Full audiobook generation completed!");
+    return audioSections;
+  } catch (error) {
+    console.error("❌ Error generating autobiography audio:", error);
+    throw new Error(
+      `Audiobook generation failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
+/**
+ * Server Action: Get available ElevenLabs voices for user selection
+ */
+export async function getAvailableVoices() {
+  try {
+    console.log("🔍 Fetching available voices...");
+    const voices = await elevenLabsService.getVoices();
+
+    // Filter to show only good voices for narration and add helpful metadata
+    const narratorVoices = voices
+      .filter(
+        (voice) =>
+          // Filter for English voices and good quality ones
+          voice.category === "premade" || voice.category === "professional"
+      )
+      .map((voice) => ({
+        voice_id: voice.voice_id,
+        name: voice.name,
+        category: voice.category,
+        // Add gender hints based on common voice names
+        suggested_gender: ["Adam", "Sam", "Josh", "Arnold", "Antoni"].includes(
+          voice.name
+        )
+          ? "male"
+          : ["Bella", "Rachel", "Domi", "Elli", "Dorothy"].includes(voice.name)
+          ? "female"
+          : "unknown",
+      }));
+
+    console.log(`✅ Found ${narratorVoices.length} suitable narrator voices`);
+    return narratorVoices;
+  } catch (error) {
+    console.error("❌ Error fetching voices:", error);
+    throw new Error(
+      `Failed to fetch voices: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }

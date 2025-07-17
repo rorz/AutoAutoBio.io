@@ -1,10 +1,47 @@
-import { Download, Play, Star, ShoppingCart, Podcast, Share } from "lucide-react";
-import { useState } from "react";
-import HTMLFlipBook from 'react-pageflip';
+import {
+  Download,
+  Play,
+  Podcast,
+  Share,
+  ShoppingCart,
+  Star,
+} from "lucide-react";
+
+import AudioPlayer from "./AudioPlayer";
 import AutobiographyPage from "./AutobiographyPage";
+import HTMLFlipBook from "react-pageflip";
+import { generateSectionAudio } from "../ai/actions";
+import { useState } from "react";
 
 const ResultsShowcase = () => {
   const [showBook, setShowBook] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | undefined>(undefined);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+
+  // Sample text for audio generation demo
+  const sampleText = `Welcome to your autobiography. This is the beginning of your story, a journey through the moments that shaped you into who you are today. Every memory, every challenge, every triumph - they all come together to create the unique narrative that is your life.`;
+
+  const handleGenerateAudio = async () => {
+    setIsGeneratingAudio(true);
+    try {
+      const audioDataUrl = await generateSectionAudio(sampleText);
+      setAudioUrl(audioDataUrl);
+    } catch (error) {
+      console.error("Failed to generate audio:", error);
+      alert("Failed to generate audio. Please check your ElevenLabs API key.");
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
+
+  const AudioPlayerDemo = () => (
+    <AudioPlayer
+      audioUrl={audioUrl}
+      title="Chapter 1: The Beginning"
+      isLoading={isGeneratingAudio}
+      onGenerateAudio={handleGenerateAudio}
+    />
+  );
 
   const autobiographyPages = [
     // Cover
@@ -16,7 +53,7 @@ const ResultsShowcase = () => {
     
     
     An Autobiography`,
-    
+
     // Table of Contents
     `TABLE OF CONTENTS
     
@@ -32,7 +69,7 @@ const ResultsShowcase = () => {
     Chapter 10: Looking Forward .................. 98
     
     Epilogue ..................................... 105`,
-    
+
     // Chapter 1
     `CHAPTER 1
     The Beginning
@@ -42,7 +79,7 @@ const ResultsShowcase = () => {
     My earliest memories are painted in the golden hues of childhood wonder. The creaking floorboards of our family home, the way sunlight streamed through the kitchen window during breakfast, and the sound of my mother's laughter echoing through the halls—these are the moments that shaped my foundation.
     
     Growing up wasn't just about the big milestones; it was about the small, seemingly insignificant moments that, when woven together, created the tapestry of who I would become.`,
-    
+
     // Chapter 2
     `CHAPTER 2
     Growing Up
@@ -54,7 +91,7 @@ const ResultsShowcase = () => {
     Those formative years taught me resilience. When I struggled with math, I learned that perseverance could overcome any challenge. When I excelled in creative writing, I discovered that words had power—the power to inspire, to comfort, and to change minds.
     
     The playground was my first taste of social dynamics, where friendships were forged and broken over games of tag and shared lunches.`,
-    
+
     // Chapter 3
     `CHAPTER 3
     Finding My Path
@@ -66,7 +103,7 @@ const ResultsShowcase = () => {
     These experiences weren't just extracurricular activities—they were the building blocks of my character. Each challenge I faced, each success I celebrated, and each failure I learned from contributed to the person I was becoming.
     
     College applications loomed large, but I was ready for the next chapter.`,
-    
+
     // Chapter 4
     `CHAPTER 4
     Love and Loss
@@ -78,7 +115,7 @@ const ResultsShowcase = () => {
     But life also brought loss. The passing of my grandfather taught me about grief, about the importance of cherishing every moment, and about the legacy we leave behind. His final words to me were simple: "Live fully, love deeply, and never stop learning."
     
     These experiences of love and loss taught me empathy, resilience, and the importance of human connection.`,
-    
+
     // Chapter 5
     `CHAPTER 5
     Career Milestones
@@ -90,7 +127,7 @@ const ResultsShowcase = () => {
     The breakthrough came when I decided to take a risk and pursue my passion project. It wasn't easy—there were countless late nights, financial stress, and moments of doubt. But there were also moments of triumph, recognition, and the incredible feeling of knowing that I was making a difference.
     
     Success wasn't just about the accolades or the financial rewards. It was about the people I met along the way, the problems I helped solve, and the impact I was able to make on the world around me.`,
-    
+
     // Chapter 6
     `CHAPTER 6
     Life Lessons
@@ -102,7 +139,7 @@ const ResultsShowcase = () => {
     I discovered that happiness isn't a destination—it's a way of traveling. It's found in the small moments: a conversation with a friend, a beautiful sunset, a job well done, or the simple pleasure of a good book.
     
     Most importantly, I learned that life is not about having all the answers. It's about being comfortable with questions, embracing uncertainty, and finding meaning in the journey itself.`,
-    
+
     // Epilogue
     `EPILOGUE
     
@@ -115,14 +152,16 @@ const ResultsShowcase = () => {
     The best chapters of my story are still being written, and I hope the same is true for you.
     
     With gratitude for the journey,
-    [Your Name]`
+    [Your Name]`,
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-blue-50 py-12">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
-          <h1 className="text-6xl font-black mb-4 tracking-tight">YOUR AUTOBIOGRAPHY</h1>
+          <h1 className="text-6xl font-black mb-4 tracking-tight">
+            YOUR AUTOBIOGRAPHY
+          </h1>
           <h2 className="text-3xl font-light text-gray-600">IS READY!</h2>
           <div className="flex justify-center mt-6">
             <div className="flex items-center space-x-2">
@@ -149,17 +188,26 @@ const ResultsShowcase = () => {
                     className="w-32 h-48 bg-white rounded-lg shadow-2xl mx-auto mb-4 flex items-center justify-center transform rotate-3 hover:rotate-0 hover:scale-110 transition-all duration-300 cursor-pointer group"
                   >
                     <div className="text-black text-center p-4">
-                      <div className="text-xs font-bold mb-2 group-hover:text-blue-600 transition-colors">MY STORY</div>
-                      <div className="text-[8px] leading-tight group-hover:text-blue-500 transition-colors">A Life Worth Living</div>
-                      <div className="text-[6px] text-gray-500 mt-2 group-hover:text-blue-400 transition-colors">Click to Read</div>
+                      <div className="text-xs font-bold mb-2 group-hover:text-blue-600 transition-colors">
+                        MY STORY
+                      </div>
+                      <div className="text-[8px] leading-tight group-hover:text-blue-500 transition-colors">
+                        A Life Worth Living
+                      </div>
+                      <div className="text-[6px] text-gray-500 mt-2 group-hover:text-blue-400 transition-colors">
+                        Click to Read
+                      </div>
                     </div>
                   </button>
-                  <div className="bg-yellow-400 text-black px-2 py-1 rounded text-sm font-semibold">287 Pages</div>
+                  <div className="bg-yellow-400 text-black px-2 py-1 rounded text-sm font-semibold">
+                    287 Pages
+                  </div>
                 </div>
               </div>
               <div className="p-6">
                 <p className="text-sm text-gray-600 mb-4">
-                  Your complete life story, professionally written and ready for publication.
+                  Your complete life story, professionally written and ready for
+                  publication.
                 </p>
                 <div className="space-y-2">
                   <button
@@ -177,32 +225,7 @@ const ResultsShowcase = () => {
             </div>
           </div>
 
-          <div className="border-4 border-red-500 shadow-2xl rounded-lg">
-            <div className="bg-red-500 text-white p-6">
-              <h3 className="text-2xl font-black">🎧 AUDIOBOOK NARRATION</h3>
-            </div>
-            <div className="p-6">
-              <div className="bg-gray-100 rounded-lg p-6 mb-4">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center">
-                    <Play className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold">Chapter 1: The Beginning</h4>
-                    <p className="text-sm text-gray-600">Narrated in your voice</p>
-                  </div>
-                </div>
-                <div className="w-full bg-gray-300 rounded-full h-2 mb-2">
-                  <div className="bg-red-500 h-2 rounded-full w-1/3"></div>
-                </div>
-                <p className="text-xs text-gray-600">12:34 / 45:67</p>
-              </div>
-              <button className="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-md transition-colors flex items-center justify-center">
-                <Play className="w-4 h-4 mr-2" />
-                Play Sample
-              </button>
-            </div>
-          </div>
+          <AudioPlayerDemo />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -212,7 +235,8 @@ const ResultsShowcase = () => {
             </div>
             <div className="p-4">
               <p className="text-sm text-gray-600 mb-4">
-                Complete Amazon listing with description, keywords, and categories.
+                Complete Amazon listing with description, keywords, and
+                categories.
               </p>
               <button className="w-full border-2 border-yellow-400 text-yellow-600 py-2 px-4 rounded-md hover:bg-yellow-50 transition-colors flex items-center justify-center">
                 <ShoppingCart className="w-4 h-4 mr-2" />
@@ -271,7 +295,7 @@ const ResultsShowcase = () => {
           </div>
         </div>
       </div>
-      
+
       {showBook && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
           <div className="relative max-w-4xl max-h-[90vh] overflow-hidden">
@@ -283,8 +307,12 @@ const ResultsShowcase = () => {
             </button>
             <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
               <div className="bg-gradient-to-r from-blue-900 to-purple-900 text-white p-4 text-center">
-                <h2 className="text-2xl font-bold">📖 Your Complete Autobiography</h2>
-                <p className="text-blue-200 mt-1">Click and drag to turn pages</p>
+                <h2 className="text-2xl font-bold">
+                  📖 Your Complete Autobiography
+                </h2>
+                <p className="text-blue-200 mt-1">
+                  Click and drag to turn pages
+                </p>
               </div>
               <div className="p-4 flex justify-center">
                 <HTMLFlipBook
@@ -299,17 +327,25 @@ const ResultsShowcase = () => {
                   showCover={true}
                   mobileScrollSupport={false}
                   onFlip={(pageObject) => {
-                    console.log('Page flipped:', pageObject);
+                    console.log("Page flipped:", pageObject);
                   }}
                   className="autobiography-flipbook"
                 >
-                  <AutobiographyPage content="" pageNumber={1} isFirstPage={true} />
-                  <AutobiographyPage content="" pageNumber={2} isTableOfContents={true} />
+                  <AutobiographyPage
+                    content=""
+                    pageNumber={1}
+                    isFirstPage={true}
+                  />
+                  <AutobiographyPage
+                    content=""
+                    pageNumber={2}
+                    isTableOfContents={true}
+                  />
                   {autobiographyPages.slice(2).map((content, index) => (
-                    <AutobiographyPage 
-                      key={index + 3} 
-                      content={content} 
-                      pageNumber={index + 3} 
+                    <AutobiographyPage
+                      key={index + 3}
+                      content={content}
+                      pageNumber={index + 3}
                     />
                   ))}
                 </HTMLFlipBook>
